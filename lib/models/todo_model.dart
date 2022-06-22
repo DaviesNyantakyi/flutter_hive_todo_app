@@ -11,13 +11,13 @@ class TodoModel extends HiveObject {
   @HiveField(0)
   final String? id;
   @HiveField(1)
-  final String title;
+  String title;
   @HiveField(2)
-  final DateTime createdAt;
+  DateTime createdAt;
   @HiveField(3)
-  final DateTime? updatedAt;
+  DateTime? updatedAt;
   @HiveField(4)
-  final int color;
+  int color;
   @HiveField(5)
   bool isDone;
 

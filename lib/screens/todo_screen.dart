@@ -17,11 +17,13 @@ class _TodoScreenState extends State<TodoScreen> {
     super.initState();
   }
 
-  Future<void> createTodo() async {
+  Future<void> createTodo({TodoModel? todoModel}) async {
     Navigator.push(
       context,
       CupertinoPageRoute(
-        builder: (context) => const CreateTodoScreen(),
+        builder: (context) => CreateTodoScreen(
+          todoModel: todoModel,
+        ),
       ),
     );
   }
@@ -102,6 +104,16 @@ class _TodoScreenState extends State<TodoScreen> {
                           decoration: todo[index].isDone
                               ? TextDecoration.lineThrough
                               : null,
+                          decorationThickness: 2.85,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.all(8),
+                      trailing: IconButton(
+                        onPressed: () => createTodo(todoModel: todo[index]),
+                        tooltip: 'Edit',
+                        icon: const Icon(
+                          Icons.edit,
+                          color: Colors.white,
                         ),
                       ),
                       tileColor: Color(todo[index].color),

@@ -1,40 +1,46 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:todo_app_hive/models/todo_model.dart';
+import 'package:todo_app_hive/models/widgets/custom_snackbar.dart';
 import 'package:uuid/uuid.dart';
-
 import 'package:fast_color_picker/fast_color_picker.dart';
 
 class CreateTodoScreen extends StatefulWidget {
-  const CreateTodoScreen({Key? key}) : super(key: key);
+  final TodoModel? todoModel;
+  const CreateTodoScreen({Key? key, this.todoModel}) : super(key: key);
 
   @override
   State<CreateTodoScreen> createState() => _CreateTodoScreenState();
 }
 
 class _CreateTodoScreenState extends State<CreateTodoScreen> {
-  final initDate = DateTime.now();
-  final TextEditingController todoCntlr = TextEditingController();
+  TextEditingController todoCntlr = TextEditingController();
   final GlobalKey<FormState> todoKey = GlobalKey<FormState>();
   Color selectedColor = Colors.indigo;
   var uuid = const Uuid();
 
   DateTime? selectedDate;
 
+  @override
+  void initState() {
+    if (widget.todoModel != null && widget.todoModel?.color != null) {
+      selectedColor = Color(widget.todoModel!.color);
+      todoCntlr = TextEditingController(text: widget.todoModel!.title);
+      selectedDate = widget.todoModel?.createdAt;
+    }
+
+    setState(() {});
+    super.initState();
+  }
+
   Future<void> createTodo() async {
     FocusScope.of(context).unfocus();
     final validTodoField = todoKey.currentState?.validate();
 
     if (selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Date required',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showCustomSnackBar(context: context, message: 'Date required');
     }
 
     if (validTodoField == true &&
@@ -51,6 +57,28 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
 
       final todoBox = Hive.box<TodoModel>('todoBox');
       await todoBox.put(id, todo);
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    }
+  }
+
+  Future<void> updateTodo() async {
+    FocusScope.of(context).unfocus();
+    final validTodoField = todoKey.currentState?.validate();
+
+    if (selectedDate == null) {
+      showCustomSnackBar(context: context, message: 'Date required');
+    }
+
+    if (validTodoField == true &&
+        todoCntlr.text.isNotEmpty &&
+        selectedDate != null) {
+      widget.todoModel?.title = todoCntlr.text;
+      widget.todoModel?.color = selectedColor.value;
+      widget.todoModel?.updatedAt = DateTime.now();
+      widget.todoModel?.createdAt = selectedDate!;
+      await widget.todoModel?.save();
       if (mounted) {
         Navigator.pop(context);
       }
@@ -110,25 +138,12 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
           final tempDate = await showDatePicker(
             context: context,
             initialEntryMode: DatePickerEntryMode.calendar,
-            initialDate: initDate,
+            initialDate: widget.todoModel?.createdAt ?? DateTime.now(),
             firstDate: DateTime.now(),
             lastDate: DateTime(2070, 01, 01),
           );
-          if (tempDate != null) {
-            final time = await showTimePicker(
-              context: context,
-              initialTime: TimeOfDay.fromDateTime(tempDate),
-            );
-            if (time != null) {
-              selectedDate = DateTime(
-                tempDate.year,
-                tempDate.month,
-                tempDate.day,
-                time.hour,
-                time.minute,
-              );
-            }
-          }
+
+          selectedDate = tempDate;
           setState(() {});
         },
         icon: const Icon(Icons.calendar_month),
@@ -154,7 +169,7 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
   Widget _buildCreateButton() {
     return FloatingActionButton.extended(
       backgroundColor: Colors.blue,
-      onPressed: createTodo,
+      onPressed: widget.todoModel != null ? updateTodo : createTodo,
       label: const Text('Create'),
     );
   }
