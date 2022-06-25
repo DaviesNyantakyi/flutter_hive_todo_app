@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:todo_app_hive/models/todo_model.dart';
-import 'package:todo_app_hive/models/widgets/custom_snackbar.dart';
+import 'package:todo_app_hive/utilities/constant.dart';
+import 'package:todo_app_hive/utilities/formal_dates.dart';
+import 'package:todo_app_hive/utilities/hive_boxes.dart';
+import 'package:todo_app_hive/widgets/custom_color_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'package:fast_color_picker/fast_color_picker.dart';
+import 'package:feather_icons/feather_icons.dart';
 
 class CreateTodoScreen extends StatefulWidget {
   final TodoModel? todoModel;
@@ -18,17 +20,17 @@ class CreateTodoScreen extends StatefulWidget {
 class _CreateTodoScreenState extends State<CreateTodoScreen> {
   TextEditingController todoCntlr = TextEditingController();
   final GlobalKey<FormState> todoKey = GlobalKey<FormState>();
-  Color selectedColor = Colors.indigo;
+  Color selectedColor = kDarkBlue;
   var uuid = const Uuid();
 
-  DateTime? selectedDate;
+  DateTime selectedDate = DateTime.now();
 
   @override
   void initState() {
     if (widget.todoModel != null && widget.todoModel?.color != null) {
       selectedColor = Color(widget.todoModel!.color);
       todoCntlr = TextEditingController(text: widget.todoModel!.title);
-      selectedDate = widget.todoModel?.createdAt;
+      selectedDate = widget.todoModel?.createdAt ?? DateTime.now();
     }
 
     setState(() {});
@@ -39,23 +41,19 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
     FocusScope.of(context).unfocus();
     final validTodoField = todoKey.currentState?.validate();
 
-    if (selectedDate == null) {
-      showCustomSnackBar(context: context, message: 'Date required');
-    }
-
-    if (validTodoField == true &&
-        todoCntlr.text.isNotEmpty &&
-        selectedDate != null) {
+    if (validTodoField == true && todoCntlr.text.isNotEmpty) {
+      // Generate id base on the time.
       final id = uuid.v1();
 
       final todo = TodoModel(
         id: id,
         title: todoCntlr.text,
-        createdAt: selectedDate!,
+        createdAt: selectedDate,
         color: selectedColor.value,
       );
 
-      final todoBox = Hive.box<TodoModel>('todoBox');
+      // Place the todo In the TodoBox.
+      final todoBox = HiveBoxes().getTodoBox();
       await todoBox.put(id, todo);
       if (mounted) {
         Navigator.pop(context);
@@ -67,17 +65,11 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
     FocusScope.of(context).unfocus();
     final validTodoField = todoKey.currentState?.validate();
 
-    if (selectedDate == null) {
-      showCustomSnackBar(context: context, message: 'Date required');
-    }
-
-    if (validTodoField == true &&
-        todoCntlr.text.isNotEmpty &&
-        selectedDate != null) {
+    if (validTodoField == true && todoCntlr.text.isNotEmpty) {
       widget.todoModel?.title = todoCntlr.text;
       widget.todoModel?.color = selectedColor.value;
       widget.todoModel?.updatedAt = DateTime.now();
-      widget.todoModel?.createdAt = selectedDate!;
+      widget.todoModel?.createdAt = selectedDate;
       await widget.todoModel?.save();
       if (mounted) {
         Navigator.pop(context);
@@ -88,24 +80,57 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Create'),
-      ),
+      appBar: _buildAppBar(context),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _buildTitleField(),
-              const SizedBox(height: 16),
-              _buildDatePicker(),
-              const SizedBox(height: 16),
-              _buildColorPicker(),
-            ],
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTitleField(),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _buildDatePicker(),
+                    const SizedBox(width: 16),
+                    _buildColorPicker(),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
       floatingActionButton: _buildCreateButton(),
+    );
+  }
+
+  AppBar _buildAppBar(BuildContext context) {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      toolbarHeight: 70,
+      actions: [
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(),
+          ),
+          margin: const EdgeInsets.only(right: 8, top: 8),
+          child: IconButton(
+            tooltip: 'Close',
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: const Icon(
+              FeatherIcons.x,
+              color: Colors.black,
+            ),
+          ),
+        )
+      ],
     );
   }
 
@@ -117,6 +142,18 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
         maxLength: null,
         maxLines: null,
         controller: todoCntlr,
+        decoration: InputDecoration(
+          hintText: 'Enter a new task',
+          border: InputBorder.none,
+          hintStyle: Theme.of(context).textTheme.headline5?.copyWith(
+                color: kDarkBlue.withOpacity(0.4),
+                fontWeight: FontWeight.w500,
+              ),
+        ),
+        style: Theme.of(context).textTheme.headline5?.copyWith(
+              color: kDarkBlue,
+              fontWeight: FontWeight.w500,
+            ),
         validator: (value) {
           if (value == null || value.isEmpty) {
             return 'Field required';
@@ -131,36 +168,60 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
   }
 
   Widget _buildDatePicker() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: () async {
-          final tempDate = await showDatePicker(
-            context: context,
-            initialEntryMode: DatePickerEntryMode.calendar,
-            initialDate: widget.todoModel?.createdAt ?? DateTime.now(),
-            firstDate: DateTime.now(),
-            lastDate: DateTime(2070, 01, 01),
-          );
+    return ElevatedButton.icon(
+      onPressed: () async {
+        final tempDate = await showDatePicker(
+          context: context,
+          initialEntryMode: DatePickerEntryMode.calendar,
+          initialDate: widget.todoModel?.createdAt ?? selectedDate,
+          firstDate: DateTime.now(),
+          lastDate: DateTime(2070, 01, 01),
+        );
 
+        if (tempDate != null) {
           selectedDate = tempDate;
-          setState(() {});
-        },
-        icon: const Icon(Icons.calendar_month),
-        label: const Text('date'),
+        }
+        setState(() {});
+      },
+      icon: const Icon(FeatherIcons.calendar),
+      label: Text(
+        selectedDate.day == DateTime.now().day
+            ? 'Today'
+            : FormalDates.dateDMY(date: selectedDate),
       ),
     );
   }
 
   Widget _buildColorPicker() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: FastColorPicker(
-        selectedColor: selectedColor,
-        onColorSelected: (color) {
-          setState(() {
-            selectedColor = color;
-          });
+    return SizedBox(
+      height: 42,
+      child: FloatingActionButton(
+        elevation: 0,
+        heroTag: 'Color',
+        backgroundColor: selectedColor,
+        tooltip: 'Color',
+        onPressed: () async {
+          FocusScope.of(context).unfocus();
+          await showDialog(
+            context: context,
+            barrierDismissible: true,
+            builder: (context) {
+              return Dialog(
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(kRadius),
+                  ),
+                ),
+                child: CustomColorPicker(
+                  pickerColor: selectedColor,
+                  onColorChanged: (color) {
+                    selectedColor = color;
+                    super.setState(() {});
+                  },
+                ),
+              );
+            },
+          );
         },
       ),
     );
@@ -168,7 +229,7 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
 
   Widget _buildCreateButton() {
     return FloatingActionButton.extended(
-      backgroundColor: Colors.blue,
+      heroTag: 'Create',
       onPressed: widget.todoModel != null ? updateTodo : createTodo,
       label: const Text('Create'),
     );
