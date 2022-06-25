@@ -100,7 +100,9 @@ class _TodoCardState extends State<TodoCard> {
         height: 32,
         margin: const EdgeInsets.only(left: 8.0),
         decoration: BoxDecoration(
-          color: Color(widget.todo.color),
+          color: Color(
+            widget.todo.isDone ? kDarkBlue.value : widget.todo.color,
+          ),
           shape: BoxShape.circle,
         ),
         padding: const EdgeInsets.all(4.0),
