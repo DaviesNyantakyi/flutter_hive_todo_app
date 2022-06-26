@@ -28,7 +28,7 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
   @override
   void initState() {
     if (widget.todoModel != null && widget.todoModel?.color != null) {
-      selectedColor = Color(widget.todoModel!.color);
+      selectedColor = Color(widget.todoModel!.color!);
       todoCntlr = TextEditingController(text: widget.todoModel!.title);
       selectedDate = widget.todoModel?.createdAt ?? DateTime.now();
     }

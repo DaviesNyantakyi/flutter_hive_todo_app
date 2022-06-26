@@ -6,10 +6,10 @@ import 'package:todo_app_hive/screens/create_todo_screen.dart';
 import 'package:todo_app_hive/utilities/constant.dart';
 
 class TodoCard extends StatefulWidget {
-  final TodoModel todo;
+  final TodoModel todoModel;
   const TodoCard({
     Key? key,
-    required this.todo,
+    required this.todoModel,
   }) : super(key: key);
 
   @override
@@ -20,11 +20,10 @@ class _TodoCardState extends State<TodoCard> {
   bool isChecked = false;
   Future<void> onDismissed(DismissDirection direction) async {
     if (direction == DismissDirection.startToEnd) {
-      widget.todo.isDone = !widget.todo.isDone;
-      widget.todo.save();
-      setState(() {});
+      widget.todoModel.isDone = !widget.todoModel.isDone;
+      await widget.todoModel.save();
     } else {
-      await widget.todo.delete();
+      await widget.todoModel.delete();
     }
   }
 
@@ -96,20 +95,23 @@ class _TodoCardState extends State<TodoCard> {
   Widget _buildLeading() {
     return GestureDetector(
       child: Container(
-        width: 32,
-        height: 32,
+        width: 24,
+        height: 24,
         margin: const EdgeInsets.only(left: 8.0),
         decoration: BoxDecoration(
           color: Color(
-            widget.todo.isDone ? kDarkBlue.value : widget.todo.color,
+            widget.todoModel.isDone
+                ? kDarkBlue.value
+                : widget.todoModel.color ?? kDarkBlue.value,
           ),
           shape: BoxShape.circle,
         ),
         padding: const EdgeInsets.all(4.0),
-        child: widget.todo.isDone
+        child: widget.todoModel.isDone
             ? const Icon(
                 FeatherIcons.check,
                 color: Colors.white,
+                size: 14,
               )
             : Container(
                 decoration: const BoxDecoration(
@@ -121,20 +123,20 @@ class _TodoCardState extends State<TodoCard> {
               ),
       ),
       onTap: () async {
-        widget.todo.isDone = !widget.todo.isDone;
-        await widget.todo.save();
+        widget.todoModel.isDone = !widget.todoModel.isDone;
+        await widget.todoModel.save();
       },
     );
   }
 
   Widget _buildTitle() {
     return Text(
-      widget.todo.title,
+      widget.todoModel.title,
       style: TextStyle(
         color: Colors.black,
         fontWeight: FontWeight.w500,
         fontSize: 18,
-        decoration: widget.todo.isDone ? TextDecoration.lineThrough : null,
+        decoration: widget.todoModel.isDone ? TextDecoration.lineThrough : null,
         decorationThickness: 2.85,
       ),
     );
@@ -142,7 +144,7 @@ class _TodoCardState extends State<TodoCard> {
 
   Widget _buildTrailing() {
     return IconButton(
-      onPressed: () => createTodo(todoModel: widget.todo),
+      onPressed: () => createTodo(todoModel: widget.todoModel),
       tooltip: 'Edit',
       icon: const Icon(
         FeatherIcons.edit,

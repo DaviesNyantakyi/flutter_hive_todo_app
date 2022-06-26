@@ -105,7 +105,7 @@ class _TodoScreenState extends State<TodoScreen> {
             itemCount: todos.length,
             itemBuilder: (context, index) {
               return TodoCard(
-                todo: todos[index],
+                todoModel: todos[index],
               );
             },
           );

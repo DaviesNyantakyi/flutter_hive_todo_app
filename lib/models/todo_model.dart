@@ -9,7 +9,7 @@ part 'todo_model.g.dart';
 @HiveType(typeId: 0)
 class TodoModel extends HiveObject {
   @HiveField(0)
-  final String? id;
+  final String id;
   @HiveField(1)
   String title;
   @HiveField(2)
@@ -17,16 +17,16 @@ class TodoModel extends HiveObject {
   @HiveField(3)
   DateTime? updatedAt;
   @HiveField(4)
-  int color;
+  int? color;
   @HiveField(5)
   bool isDone;
 
   TodoModel({
-    this.id,
+    required this.id,
     required this.title,
     required this.createdAt,
     this.updatedAt,
-    required this.color,
+    this.color,
     this.isDone = false,
   });
 
