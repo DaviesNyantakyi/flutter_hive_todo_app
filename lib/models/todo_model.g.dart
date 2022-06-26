@@ -22,7 +22,7 @@ class TodoModelAdapter extends TypeAdapter<TodoModel> {
       createdAt: fields[2] as DateTime,
       updatedAt: fields[3] as DateTime?,
       color: fields[4] as int,
-      isDone: fields[5] as bool,
+      isDone: fields[5] ?? false,
     );
   }
 
