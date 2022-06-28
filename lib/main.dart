@@ -28,9 +28,8 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Flutter Demo',
           debugShowCheckedModeBanner: false,
-          theme: isDarkMode == false || isDarkMode == null
-              ? CustomTheme.lightMode
-              : CustomTheme.darkMode,
+          theme:
+              isDarkMode == true ? CustomTheme.darkMode : CustomTheme.lightMode,
           home: const TodoScreen(),
         );
       },
