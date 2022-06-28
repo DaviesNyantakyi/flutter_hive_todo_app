@@ -55,15 +55,23 @@ class _TodoCardState extends State<TodoCard> {
         color: Colors.red.shade700,
         icon: FeatherIcons.trash,
       ),
-      child: ListTile(
-        leading: _buildLeading(),
-        title: _buildTitle(),
-        contentPadding: const EdgeInsets.all(8),
-        trailing: _buildTrailing(),
-        tileColor: Colors.white,
+      child: Material(
+        elevation: 1.8,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(
             Radius.circular(10),
+          ),
+        ),
+        child: ListTile(
+          leading: _buildLeading(),
+          title: _buildTitle(),
+          contentPadding: const EdgeInsets.all(8),
+          trailing: _buildTrailing(),
+          tileColor: Colors.white,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(10),
+            ),
           ),
         ),
       ),

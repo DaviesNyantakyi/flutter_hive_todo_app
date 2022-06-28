@@ -41,50 +41,96 @@ class _TodoScreenState extends State<TodoScreen> {
         style: Theme.of(context).textTheme.headline5,
       ),
       actions: [
+        _buildDarkModeButton(),
         _buildDeleteButton(),
       ],
     );
   }
 
-  Widget _buildDeleteButton() {
-    return IconButton(
-      tooltip: 'Delete',
-      icon: const Icon(
-        FeatherIcons.trash,
-        color: Colors.black,
-      ),
-      onPressed: () async {
-        await Hive.box<TodoModel>('todoBox').clear();
+  Widget _buildDarkModeButton() {
+    return ValueListenableBuilder<Box<bool>>(
+      valueListenable: Hive.box<bool>('darkModeBox').listenable(),
+      builder: (context, darkModeBox, _) {
+        final isDarkMode = darkModeBox.get('isDarkMode');
+
+        return IconButton(
+          tooltip: 'Dark Mode',
+          icon: Icon(
+            isDarkMode == true ? FeatherIcons.moon : FeatherIcons.sun,
+            color: isDarkMode == true ? Colors.white : Colors.black,
+          ),
+          onPressed: () async {
+            if (isDarkMode == true) {
+              await darkModeBox.put('isDarkMode', false);
+              debugPrint('isDarkMode: $isDarkMode');
+              debugPrint('Now in darkMode');
+            } else {
+              await darkModeBox.put('isDarkMode', true);
+              debugPrint('isDarkMode: $isDarkMode');
+              debugPrint('Now in lightMode');
+            }
+          },
+        );
       },
     );
   }
 
-  FloatingActionButton _buildAddButton() {
+  Widget _buildDeleteButton() {
+    return ValueListenableBuilder<Box<bool>>(
+      valueListenable: Hive.box<bool>('darkModeBox').listenable(),
+      builder: (context, darkModeBox, _) {
+        final isDarkMode = darkModeBox.get('isDarkMode');
+        return IconButton(
+          tooltip: 'Delete',
+          icon: Icon(
+            FeatherIcons.trash,
+            color: isDarkMode == true ? Colors.white : Colors.black,
+          ),
+          onPressed: () async {
+            await Hive.box<TodoModel>('todoBox').clear();
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildAddButton() {
     return FloatingActionButton(
       heroTag: 'addTodo',
       onPressed: () => createTodo(),
       tooltip: 'Add',
-      child: const Icon(Icons.add),
+      child: const Icon(
+        FeatherIcons.plus,
+        color: Colors.white,
+      ),
     );
   }
 
   Widget _buildEmptyPlaceHolder() {
-    return Center(
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Image.asset(
-              'assets/todo.png',
-              width: 300,
+    return ValueListenableBuilder<Box<bool>>(
+        valueListenable: Hive.box<bool>('darkModeBox').listenable(),
+        builder: (context, darkModeBox, _) {
+          final isDarkMode = darkModeBox.get('isDarkMode');
+          return Center(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Image.asset(
+                    isDarkMode == true
+                        ? 'assets/todo_dark_mode.png'
+                        : 'assets/todo.png',
+                    width: 300,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'No todo\'s',
+                    style: Theme.of(context).textTheme.headline5,
+                  ),
+                ],
+              ),
             ),
-            Text(
-              'No todo\'s',
-              style: Theme.of(context).textTheme.headline5,
-            ),
-          ],
-        ),
-      ),
-    );
+          );
+        });
   }
 
   Widget _buildBody() {

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:todo_app_hive/models/todo_model.dart';
 import 'package:todo_app_hive/utilities/constant.dart';
 import 'package:todo_app_hive/utilities/formal_dates.dart';
@@ -108,63 +109,80 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
     );
   }
 
-  AppBar _buildAppBar(BuildContext context) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      toolbarHeight: 70,
-      actions: [
-        Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(),
-          ),
-          margin: const EdgeInsets.only(right: 8, top: 8),
-          child: IconButton(
-            tooltip: 'Close',
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(
-              FeatherIcons.x,
-              color: Colors.black,
-            ),
-          ),
-        )
-      ],
+  PreferredSize _buildAppBar(BuildContext context) {
+    return PreferredSize(
+      preferredSize: const Size(double.infinity, 78),
+      child: ValueListenableBuilder<Box<bool>>(
+          valueListenable: Hive.box<bool>('darkModeBox').listenable(),
+          builder: (context, darkModeBox, _) {
+            final isDarkMode = darkModeBox.get('isDarkMode');
+            return AppBar(
+              automaticallyImplyLeading: false,
+              toolbarHeight: 70,
+              actions: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isDarkMode == true ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  margin: const EdgeInsets.only(right: 8, top: 8),
+                  child: IconButton(
+                    tooltip: 'Close',
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    icon: Icon(
+                      FeatherIcons.x,
+                      color: isDarkMode == true ? Colors.white : Colors.black,
+                    ),
+                  ),
+                )
+              ],
+            );
+          }),
     );
   }
 
   Widget _buildTitleField() {
-    return Form(
-      key: todoKey,
-      child: TextFormField(
-        textInputAction: TextInputAction.newline,
-        maxLength: null,
-        maxLines: null,
-        controller: todoCntlr,
-        decoration: InputDecoration(
-          hintText: 'Enter a new task',
-          border: InputBorder.none,
-          hintStyle: Theme.of(context).textTheme.headline5?.copyWith(
-                color: kDarkBlue.withOpacity(0.4),
-                fontWeight: FontWeight.w500,
+    return ValueListenableBuilder<Box<bool>>(
+        valueListenable: Hive.box<bool>('darkModeBox').listenable(),
+        builder: (context, darkModeBox, _) {
+          final isDarkMode = darkModeBox.get('isDarkMode');
+          return Form(
+            key: todoKey,
+            child: TextFormField(
+              textInputAction: TextInputAction.newline,
+              maxLength: null,
+              maxLines: null,
+              controller: todoCntlr,
+              decoration: InputDecoration(
+                hintText: 'Enter a new task',
+                border: InputBorder.none,
+                hintStyle: Theme.of(context).textTheme.headline5?.copyWith(
+                      color: isDarkMode == true
+                          ? Colors.white.withOpacity(0.4)
+                          : kDarkBlue.withOpacity(0.4),
+                      fontWeight: FontWeight.w500,
+                    ),
               ),
-        ),
-        style: Theme.of(context).textTheme.headline5?.copyWith(
-              color: kDarkBlue,
-              fontWeight: FontWeight.w500,
+              style: Theme.of(context).textTheme.headline5?.copyWith(
+                    color: isDarkMode == true ? Colors.white : kDarkBlue,
+                    fontWeight: FontWeight.w500,
+                  ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Field required';
+                }
+                return null;
+              },
+              onChanged: (value) {
+                todoKey.currentState?.validate();
+              },
             ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Field required';
-          }
-          return null;
-        },
-        onChanged: (value) {
-          todoKey.currentState?.validate();
-        },
-      ),
-    );
+          );
+        });
   }
 
   Widget _buildDatePicker() {
@@ -183,11 +201,15 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
         }
         setState(() {});
       },
-      icon: const Icon(FeatherIcons.calendar),
+      icon: const Icon(FeatherIcons.calendar, color: Colors.white),
       label: Text(
         selectedDate.day == DateTime.now().day
             ? 'Today'
             : FormalDates.dateDMY(date: selectedDate),
+        style: Theme.of(context)
+            .textTheme
+            .bodyText1
+            ?.copyWith(color: Colors.white),
       ),
     );
   }
@@ -231,7 +253,13 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
     return FloatingActionButton.extended(
       heroTag: 'Create',
       onPressed: widget.todoModel != null ? updateTodo : createTodo,
-      label: const Text('Create'),
+      label: Text(
+        'Create',
+        style: Theme.of(context)
+            .textTheme
+            .bodyText1
+            ?.copyWith(color: Colors.white),
+      ),
     );
   }
 }
