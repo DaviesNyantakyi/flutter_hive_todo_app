@@ -38,7 +38,7 @@ class _TodoScreenState extends State<TodoScreen> {
     return AppBar(
       title: Text(
         'Todo\'s',
-        style: Theme.of(context).textTheme.headline5,
+        style: Theme.of(context).textTheme.headlineSmall,
       ),
       actions: [
         _buildDarkModeButton(),
@@ -124,7 +124,7 @@ class _TodoScreenState extends State<TodoScreen> {
                   const SizedBox(height: 24),
                   Text(
                     'No todo\'s',
-                    style: Theme.of(context).textTheme.headline5,
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
                 ],
               ),

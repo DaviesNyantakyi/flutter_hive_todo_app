@@ -160,14 +160,14 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
               decoration: InputDecoration(
                 hintText: 'Enter a new task',
                 border: InputBorder.none,
-                hintStyle: Theme.of(context).textTheme.headline5?.copyWith(
+                hintStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: isDarkMode == true
                           ? Colors.white.withOpacity(0.4)
                           : kDarkBlue.withOpacity(0.4),
                       fontWeight: FontWeight.w500,
                     ),
               ),
-              style: Theme.of(context).textTheme.headline5?.copyWith(
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: isDarkMode == true ? Colors.white : kDarkBlue,
                     fontWeight: FontWeight.w500,
                   ),
@@ -208,7 +208,7 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
             : FormalDates.dateDMY(date: selectedDate),
         style: Theme.of(context)
             .textTheme
-            .bodyText1
+            .bodyLarge
             ?.copyWith(color: Colors.white),
       ),
     );
@@ -257,7 +257,7 @@ class _CreateTodoScreenState extends State<CreateTodoScreen> {
         'Create',
         style: Theme.of(context)
             .textTheme
-            .bodyText1
+            .bodyLarge
             ?.copyWith(color: Colors.white),
       ),
     );
